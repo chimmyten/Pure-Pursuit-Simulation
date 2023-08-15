@@ -4,9 +4,6 @@ from matplotlib.patches import Circle
 import numpy as np
 import math
 
-plt.xlabel("X-Axis")
-plt.ylabel("Y-Axis")
-
 #plots the path on the grid
 def plot_path(path, color):
     # plots each point of the path
@@ -160,6 +157,8 @@ def get_steering_angle():
 
 #plots the path, current position, goalpt, theta, and traveled path
 def update():
+    plt.xlabel("X-Axis")
+    plt.ylabel("Y-Axis")
     plot_path(path, "grey")
     plot_theta()
     plt.plot(current_pos[0], current_pos[1], ".", color="red", markersize=15)
