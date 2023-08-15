@@ -3,11 +3,11 @@ import matplotlib.animation as animation
 from matplotlib.patches import Circle
 import numpy as np
 import math
-from IPython import display
 
 plt.xlabel("X-Axis")
 plt.ylabel("Y-Axis")
 
+#plots the path on the grid
 def plot_path(path, color):
     # plots each point of the path
     for i in range(0, len(path)):
@@ -17,6 +17,14 @@ def plot_path(path, color):
     for i in range(0, len(path)-1):
         plt.plot([path[i][0], path[i+1][0]], [path[i][1], path[i+1][1]], color=color)
 
+#plots the current heading of the robot
+def plot_theta():
+    global current_pos, theta, look_ahd_dist
+    x, y, = current_pos[0], current_pos[1]
+    endy = y + look_ahd_dist * math.sin(theta)
+    endx = x + look_ahd_dist * math.cos(theta)
+
+    plt.plot([x, endx], [y, endy], color="red", markersize = 5)
 #changes the designated points to red
 def highlight_points(points):
     for point in points :
@@ -34,13 +42,16 @@ def sgn(num):
     else:
         return 1
     
+#returns the distance between two points
 def get_dist(pt1, pt2):
-    return math.sqrt((pt2[0]-pt1[0])**2 + (pt2[1]-pt2[0])**2)
+    return math.sqrt((pt2[0]-pt1[0])**2 + (pt2[1]-pt1[1])**2)
 
+#returns 0, 1, or 2 valid intersections
 def line_circle_intersection(current_pos, pt1, pt2, look_ahd_dist):
     x1, x2, y1, y2 = pt1[0], pt2[0], pt1[1], pt2[1]
     current_x, current_y = current_pos[0], current_pos[1]
     intersect_found = False
+    print(f"Currently searching between pt {x1, y1} and pt {x2, y2}")
 
     #offset to the origin
     x1_offset = x1 - current_x
@@ -74,7 +85,7 @@ def line_circle_intersection(current_pos, pt1, pt2, look_ahd_dist):
         maxX = max(x1, x2)
         if (minX <= sol1[0] <= maxX):
             validpts.append(sol1)
-        if (sol2[0] < minX or sol2[0] > maxX):
+        if (minX <= sol2[0] <= maxX):
             validpts.append(sol2)
         return validpts
 
@@ -86,39 +97,41 @@ def line_circle_intersection(current_pos, pt1, pt2, look_ahd_dist):
         # plt.axis("scaled")
         # plt.show()
   
-def goal_pt_search(current_pos, path, last_found_index, look_ahd_dist):
-    
+#sets the goal pt based on valid intersections
+def goal_pt_search():
+    global path, look_ahd_dist, last_found_index, current_pos
+
     for i in range(last_found_index, len(path)):
-        print(i)
         valid_pts = line_circle_intersection(current_pos, path[i], path[i+1], look_ahd_dist)
         #no intersections were found, robot has strayed off the path
         if valid_pts == False:
-            goal_pt = path[last_found_index]
+            return path[last_found_index]
         #intersections were found but no valid points, move on to next iteration of the loop
         if not valid_pts:
             print("No Valid Points")
             continue
         #if there is only one valid point, take that one
         if (len(valid_pts) == 1):
-            sol_pt = valid_pts
-        #if there are two valid points, choose the one that is closest to the next point in the path
+            sol_pt = valid_pts[0]
+        #if there are two valid points, choose the one that is closest to the end of the path
         else:
             if (get_dist(valid_pts[0], path[i+1]) < get_dist(valid_pts[1], path[i+1])):
                 sol_pt = valid_pts[0]
             else:
                 sol_pt = valid_pts[1]
 
-            #check if the goal pt is closer to the end than the current position of the robot
-            if (get_dist(sol_pt, path[i+1]) < get_dist(current_pos, path[i+1])):
-                last_found_index = i
-                goal_pt = sol_pt
-                plt.plot(goal_pt[0], goal_pt[1], ".", color="red", markersize = 15)
-                print(goal_pt)
-                # plot_path(path[0:last_found_index+1], "brown")
-                # plot_path(path[last_found_index:], "grey")
-                # draw_circle(current_pos, look_ahd_dist)
-                # plt.show()
-                break                
+        #check if the goal pt is closer to the end than the current position of the robot
+        if (get_dist(sol_pt, path[i+1]) < get_dist(current_pos, path[i+1])):
+            last_found_index = i
+            goal_pt = sol_pt
+            return goal_pt
+            
+            # print(goal_pt)
+            # plt.plot(goal_pt[0], goal_pt[1], ".", color="red", markersize = 15)
+            # plot_path(path[0:last_found_index+1], "brown")
+            # plot_path(path[last_found_index:], "grey")
+            # draw_circle(current_pos, look_ahd_dist)
+            # plt.show()                
 
                 
         #plot the example
@@ -127,27 +140,89 @@ def goal_pt_search(current_pos, path, last_found_index, look_ahd_dist):
         # draw_circle(current_pos, look_ahd_dist)
         # plt.show()
 
-def get_steering_angle(current_angle):
+#returns the angle of the goalpt relative to the current position of the robot
+def get_goal_angle():
+    goal_offsetx = goal_pt[0] - current_pos[0]
+    goal_offsety = goal_pt[1] - current_pos[1]
+    return math.atan2(goal_offsety, goal_offsetx)
+
+#returns the turn error
+def get_steering_angle():
     #subtract the current angle of the robot from the angle of the goal point
-    goal_angle = math.atan2(goal_pt[1], goal_pt[0]) * (180/math.pi)
-    steering_angle = goal_angle - current_angle
+    global theta
+    #offset current position to the origin
+    goal_angle = get_goal_angle()
+    print(f"Goal Angle: {goal_angle}")
+    print(f"Current Angle: {theta}")
+    steering_angle = goal_angle - theta
+    print(f"Steering Angle: {steering_angle}")
     return steering_angle
 
+#plots the path, current position, goalpt, theta, and traveled path
+def update():
+    plot_path(path, "grey")
+    plot_theta()
+    plt.plot(current_pos[0], current_pos[1], ".", color="red", markersize=15)
+    plt.plot(robot_pathx, robot_pathy, color="brown", markersize=.5)
+    plt.plot(goal_pt[0], goal_pt[1], "x", color="red", markersize = 15)
+    draw_circle(current_pos, look_ahd_dist)
+    plt.axis("equal")    
+    plt.show()    
 
-path = [[0.0, 0.0], [0.011580143395790051, 0.6570165243709267], [0.07307496243411533, 1.2724369146199181], [0.3136756819515748, 1.7385910188236868], [0.8813313906933087, 1.9320292911046681], [1.6153051608455251, 1.9849785681091774], [2.391094224224885, 1.9878393390954208], [3.12721333474683, 1.938831731115573], [3.685011039017028, 1.7396821576569221], [3.9068092597113266, 1.275245079016133], [3.9102406525571713, 0.7136897450501469], [3.68346383786099, 0.2590283720040381], [3.1181273273535957, 0.06751996250999465], [2.3832776875784316, 0.013841087641154892], [1.5971423891000605, 0.0023698980178599423], [0.7995795475309813, 0.0003490964043320208], [0, 0]]
-current_pos = path[0]
-current_angle = 0
-look_ahd_dist = .8
+#Robot Path
+path = [[0.0, 0.0], [0.08, 0.4], [0.18, 1.3], [0.4, 1.68], [0.94, 1.86], [1.62, 2.01], [2.32, 1.98], [3, 1.87], [3.58, 1.62], [3.92, 1.37], [3.89, 0.74], [3.62, 0.26], [3.12, 0.15], [2.4, 0.052], [1.47, 0.003], [0.64, 0.0012], [0, 0]]
+
+#Parameters
+current_pos = [0,0]
+theta = 0
+look_ahd_dist = .5
 last_found_index = 0
-#algorithm
+goal_pt = []
 
-#while the end has not been reached
-while (last_found_index < (len(path)-1)):
+wheel_radius = .1
+wheelbase = .5
+linear_vel = .2
+dt = .2 #time step
+
+robot_pathx = []
+robot_pathy = []
+
+#algorithm
+while True:
     #get the goal point and update last_found_index
-    goal_pt = goal_pt_search(current_pos, path, last_found_index, look_ahd_dist)
-    
+    goal_pt = goal_pt_search()
     #calculations
-    steering_angle = get_steering_angle(current_angle)
+    steering_angle = get_steering_angle()
+    if (steering_angle > (3*math.pi)/2):
+        steering_angle -= (2*math.pi)
+    # if the steering angle is too large, make the robot turn in place until the steering angle is small enough
+    if (math.pi/2 < abs(steering_angle) < (3*math.pi)/2):
+        theta = get_goal_angle()
+        steering_angle = get_steering_angle()
     linear_error = get_dist(current_pos, goal_pt)
-    turning_radius = linear_error/(2*math.sin(steering_angle))
+    if (steering_angle == 0):
+        lwheel_speed = linear_vel
+        rwheel_speed = linear_vel
+    else:
+        turning_radius = linear_error/(2*math.sin(steering_angle))
+        # print(f"Turning Radius: {turning_radius}\n")
+        
+        if (abs(turning_radius) > (wheelbase/2)):
+            lwheel_speed = abs((linear_vel/wheel_radius)*(turning_radius-(wheelbase/2)))
+            rwheel_speed = abs((linear_vel/wheel_radius)*(turning_radius+(wheelbase/2)))
+        else:
+            lwheel_speed = abs((linear_vel/wheel_radius)*((wheelbase/2)-turning_radius))
+            rwheel_speed = abs((linear_vel/wheel_radius)*((wheelbase/2)+(turning_radius)))
+
+    #plot everything before the position is updated
+    # print(f"Left Wheel Speed:{lwheel_speed}; Right Wheel Speed: {rwheel_speed}")
+    update()
+    omega = (wheel_radius/wheelbase) * (rwheel_speed - lwheel_speed)
+    theta += omega * dt
+    current_pos[0] += linear_vel * math.cos(theta) * dt
+    current_pos[1] += linear_vel * math.sin(theta) * dt
+    robot_pathx.append(current_pos[0])
+    robot_pathy.append(current_pos[1])
+    # print(f"Omega: {omega}")
     
+
