@@ -21,7 +21,8 @@ def plot_theta():
     endx = x + look_ahd_dist * math.cos(theta)
 
     plt.plot([x, endx], [y, endy], color="red", markersize = 5)
-#changes the designated points to red
+
+# changes the designated points to red
 def highlight_points(points):
     for point in points :
         plt.plot(point[0], point[1], '.', color="red", markersize = 10)
