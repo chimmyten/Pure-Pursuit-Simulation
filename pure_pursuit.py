@@ -47,7 +47,7 @@ def line_circle_intersection(current_pos, pt1, pt2, look_ahd_dist):
     x1, x2, y1, y2 = pt1[0], pt2[0], pt1[1], pt2[1]
     current_x, current_y = current_pos[0], current_pos[1]
     intersect_found = False
-    print(f"Currently searching between pt {x1, y1} and pt {x2, y2}")
+    # print(f"Currently searching between pt {x1, y1} and pt {x2, y2}")
 
     #offset to the origin
     x1_offset = x1 - current_x
@@ -98,6 +98,8 @@ def goal_pt_search():
     global path, look_ahd_dist, last_found_index, current_pos
 
     for i in range(last_found_index, len(path)):
+        if (i == len(path) - 1):
+            return False
         valid_pts = line_circle_intersection(current_pos, path[i], path[i+1], look_ahd_dist)
         #no intersections were found, robot has strayed off the path
         if valid_pts == False:
@@ -151,7 +153,7 @@ def get_steering_angle():
     print(f"Goal Angle: {goal_angle}")
     print(f"Current Angle: {theta}")
     steering_angle = goal_angle - theta
-    print(f"Steering Angle: {steering_angle}")
+    print(f"Steering Angle: {steering_angle}\n")
     return steering_angle
 
 #plots the path, current position, goalpt, theta, and traveled path
@@ -189,6 +191,9 @@ robot_pathy = []
 while True:
     #get the goal point and update last_found_index
     goal_pt = goal_pt_search()
+    if (goal_pt == False):
+        print("End of Path Reached")
+        break
     #calculations
     steering_angle = get_steering_angle()
     if (steering_angle > (3*math.pi)/2):
