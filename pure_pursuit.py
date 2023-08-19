@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.patches import Circle
-import numpy as np
 import math
 
 #plots the path on the grid
@@ -66,10 +65,10 @@ def line_circle_intersection(current_pos, pt1, pt2, look_ahd_dist):
     #use quadratic formula to find intersection(s)
     if (disc >= 0):
         intersect_found = True
-        sol_x1 = (d * dy + sgn(dy) * dx * np.sqrt(disc)) / dr**2
-        sol_x2 = (d * dy - sgn(dy) * dx * np.sqrt(disc)) / dr**2
-        sol_y1 = (- d * dx + abs(dy) * np.sqrt(disc)) / dr**2
-        sol_y2 = (- d * dx - abs(dy) * np.sqrt(disc)) / dr**2    
+        sol_x1 = (d * dy + sgn(dy) * dx * math.sqrt(disc)) / dr**2
+        sol_x2 = (d * dy - sgn(dy) * dx * math.sqrt(disc)) / dr**2
+        sol_y1 = (- d * dx + abs(dy) * math.sqrt(disc)) / dr**2
+        sol_y2 = (- d * dx - abs(dy) * math.sqrt(disc)) / dr**2    
         #reset the system
         sol1, sol2 = [sol_x1+current_x, sol_y1+current_y], [sol_x2+current_x, sol_y2+current_y]
     
