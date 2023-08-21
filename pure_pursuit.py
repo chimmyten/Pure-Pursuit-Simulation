@@ -157,7 +157,7 @@ def get_steering_angle():
     print(f"Steering Angle: {steering_angle}\n")
     return steering_angle
 
-def get_turn_radius(linear_error, turn_radius):
+def get_turn_radius(linear_error, steering_angle):
     return linear_error/(2*math.sin(steering_angle))
 
 #plots the path, current position, goalpt, theta, and traveled path
