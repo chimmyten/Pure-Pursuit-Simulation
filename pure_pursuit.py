@@ -183,8 +183,11 @@ goal_pt = []
 wheel_radius = .1
 wheelbase = .5
 linear_vel = .2
-dt = .2 #time step
 
+#time step, used to calculate robot positions
+dt = .2 
+
+#keeps track of where the robot has traveled
 robot_pathx = []
 robot_pathy = []
 
@@ -208,7 +211,7 @@ while True:
         lwheel_speed = linear_vel
         rwheel_speed = linear_vel
     else:
-        turning_radius = linear_error/(2*math.sin(steering_angle))
+        turn_radius = linear_error/(2*math.sin(steering_angle))
         # print(f"Turning Radius: {turning_radius}\n")
         
         if (abs(turning_radius) > (wheelbase/2)):
