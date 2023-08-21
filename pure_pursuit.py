@@ -157,6 +157,9 @@ def get_steering_angle():
     print(f"Steering Angle: {steering_angle}\n")
     return steering_angle
 
+def get_turn_radius(linear_error, turn_radius):
+    return linear_error/(2*math.sin(steering_angle))
+
 #plots the path, current position, goalpt, theta, and traveled path
 def update():
     plt.xlabel("X-Axis")
@@ -211,7 +214,7 @@ while True:
         lwheel_speed = linear_vel
         rwheel_speed = linear_vel
     else:
-        turn_radius = linear_error/(2*math.sin(steering_angle))
+        turn_radius = get_turn_radius(linear_error, steering_angle)
         # print(f"Turning Radius: {turning_radius}\n")
         
         if (abs(turn_radius) > (wheelbase/2)):
