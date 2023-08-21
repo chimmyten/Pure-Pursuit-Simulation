@@ -214,12 +214,12 @@ while True:
         turn_radius = linear_error/(2*math.sin(steering_angle))
         # print(f"Turning Radius: {turning_radius}\n")
         
-        if (abs(turning_radius) > (wheelbase/2)):
-            lwheel_speed = abs((linear_vel/wheel_radius)*(turning_radius-(wheelbase/2)))
-            rwheel_speed = abs((linear_vel/wheel_radius)*(turning_radius+(wheelbase/2)))
+        if (abs(turn_radius) > (wheelbase/2)):
+            lwheel_speed = abs((linear_vel/wheel_radius)*(turn_radius-(wheelbase/2)))
+            rwheel_speed = abs((linear_vel/wheel_radius)*(turn_radius+(wheelbase/2)))
         else:
-            lwheel_speed = abs((linear_vel/wheel_radius)*((wheelbase/2)-turning_radius))
-            rwheel_speed = abs((linear_vel/wheel_radius)*((wheelbase/2)+(turning_radius)))
+            lwheel_speed = abs((linear_vel/wheel_radius)*((wheelbase/2)-turn_radius))
+            rwheel_speed = abs((linear_vel/wheel_radius)*((wheelbase/2)+(turn_radius)))
 
     #plot everything before the position is updated
     # print(f"Left Wheel Speed:{lwheel_speed}; Right Wheel Speed: {rwheel_speed}")
